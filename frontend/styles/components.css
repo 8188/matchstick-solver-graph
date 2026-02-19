@@ -1,0 +1,294 @@
+﻿/**
+ * SVG 火柴棒组件样式
+ */
+
+/* 按钮 - 与 main.css 对齐，components 只保留差异覆盖 */
+.btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: var(--tech-border, 1.5px) solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-family: 'matchstick', 'Courier New', monospace;
+    font-size: 0.82rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    box-shadow: 0 1px 4px var(--shadow);
+    min-width: 36px;
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn:hover {
+    background-color: var(--accent-primary);
+    color: #fff;
+    border-color: var(--accent-primary);
+    box-shadow: 0 2px 10px var(--shadow-hover);
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px var(--shadow);
+}
+
+.btn-primary {
+    background-color: var(--accent-primary);
+    color: #fff;
+    border-color: var(--accent-primary);
+}
+
+.btn-secondary {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+/* 表格 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
+
+table th,
+table td {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+
+table th {
+    background-color: var(--bg-tertiary);
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    color: var(--text-primary);
+}
+
+table tr:hover {
+    background-color: var(--bg-tertiary);
+}
+
+/* 火柴棒数字容器 */
+.matchstick-digit {
+    display: inline-block;
+    margin: 0 2px;
+}
+
+/* 火柴棒线条 */
+.matchstick-digit .match {
+    transition: all var(--transition-normal);
+}
+
+/* 火柴棒悬停效果 */
+.matchstick-digit:hover .match {
+    stroke: var(--accent-primary);
+    filter: drop-shadow(0 0 3px var(--accent-primary));
+}
+
+/* 等式容器 (SVG模式) */
+.matchstick-equation {
+    padding: 0;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    scrollbar-width: none;
+}
+
+/* 隐藏Webkit滚动条 */
+.matchstick-equation::-webkit-scrollbar {
+    display: none;
+}
+
+/* SVG模式样式调整 */
+svg.matchstick-digit {
+    height: 20px;
+    width: auto;
+}
+
+/* 结果容器 */
+.result-container {
+    margin-top: var(--spacing-sm);
+}
+
+.result-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--spacing-sm);
+    padding: 0;
+}
+
+/* 结果项 */
+.result-item {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.result-item:hover {
+    background: var(--bg-primary);
+    border-color: var(--border-tech);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px var(--shadow-hover);
+}
+
+/* 统计信息卡片 */
+.stats {
+    display: flex;
+    justify-content: space-around;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    margin-top: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--border-tech);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    color: var(--accent-primary);
+    font-weight: bold;
+    font-family: 'matchstick', 'Courier New', monospace;
+    letter-spacing: 0.04em;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* 解决方案网格 */
+.solutions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+}
+
+.solution-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-top: 2px solid var(--border-tech);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    transition: all var(--transition-normal);
+}
+
+.solution-card:hover {
+    border-color: var(--border-tech);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px var(--shadow-hover);
+}
+
+.solution-equation {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+    text-align: center;
+    font-family: 'matchstick', 'Courier New', monospace;
+}
+
+.solution-changes {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+/* 加载和错误提示 */
+.loading {
+    text-align: center;
+    padding: var(--spacing-lg);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.error {
+    background: rgba(140, 26, 26, 0.07);
+    border: 1px solid var(--error);
+    color: var(--error);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-top: var(--spacing-md);
+    font-size: 0.85rem;
+}
+
+.success {
+    background: rgba(26, 92, 58, 0.07);
+    border: 1px solid var(--success);
+    color: var(--text-primary);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-top: var(--spacing-md);
+    font-size: 0.85rem;
+}
+
+/* 示例按钮 */
+.example-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--border-tech);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: 'matchstick', 'Courier New', monospace;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: 0.82rem;
+}
+
+.example-btn:hover {
+    background: var(--accent-primary);
+    color: #fff;
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px var(--shadow-hover);
+}
+
+/* 成功徽章 */
+.success-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--success);
+    color: #fff;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-left: auto;
+    text-shadow: none;
+}
+
+/* 段落 */
+p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}

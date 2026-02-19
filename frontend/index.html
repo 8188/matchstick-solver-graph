@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>火柴棒等式解题工具箱 - FalkorDB</title>
+
+    <!-- 样式 -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/components.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-sm); border-bottom: 2px solid var(--border-tech);">
+            <h1 class="main-title" style="font-size: 1rem; letter-spacing: 3px; color: var(--accent-primary);">&#9632; MATCHSTICK SOLVER</h1>
+            <div style="display: flex; gap: var(--spacing-sm);">
+                <button id="lang-toggle" class="btn btn-secondary" style="font-size: 0.8rem; min-width: 36px;" data-title-key="langToggle">&#x1F310;</button>
+                <button id="music-toggle" class="btn btn-secondary" style="font-size: 0.8rem; min-width: 36px;">&#x1F3B5;</button>
+                <button id="theme-toggle" class="btn btn-secondary" style="font-size: 0.8rem; min-width: 36px;" data-title-key="themeToggle">&#x1F319;</button>
+            </div>
+        </header>
+
+        <!-- 背景音乐 -->
+        <audio id="bgm" loop>
+            <source src="assets/music/Rockman-1-Ending.mp3" type="audio/mpeg">
+        </audio>
+
+        <!-- 模式选择器 -->
+        <div class="card" style="margin-bottom: var(--spacing-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
+                <h3 class="mode-title" style="font-size: 0.82rem; margin: 0; letter-spacing: 0.08em; color: var(--text-secondary);">&#9658; MODE</h3>
+                <button id="show-rules" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px; letter-spacing: 0.06em;">&#9658; RULES</button>
+            </div>
+            <div id="mode-selector" style="display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);"></div>
+            
+            <!-- 移动火柴数量选择器 -->
+            <div style="margin-bottom: var(--spacing-sm);">
+                <label class="move-count-label" style="font-size: 0.82rem; font-family: 'matchstick', 'Courier New', monospace; opacity: 0.8; margin-right: var(--spacing-sm); text-transform: uppercase; letter-spacing: 0.05em;"></label>
+                <div id="move-count-selector" style="display: inline-flex; gap: var(--spacing-xs); background: var(--bg-tertiary); padding: 2px; border: 1px solid var(--border-color);">
+                    <button class="btn btn-primary move-count-btn" data-count="1" data-text-key="oneMatch" style="font-size: 0.75rem; padding: 4px 12px;">1根</button>
+                    <button class="btn btn-secondary move-count-btn" data-count="2" data-text-key="twoMatches" style="font-size: 0.75rem; padding: 4px 12px;">2根</button>
+                </div>
+            </div>
+            
+            <div id="char-preview" style="display: flex; gap: 4px; flex-wrap: wrap; background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 4px; min-height: 32px; align-items: center;"></div>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="card" style="margin-bottom: var(--spacing-md);">
+            <h3 class="input-title" style="font-size: 0.82rem; margin-bottom: var(--spacing-sm); letter-spacing: 0.08em; color: var(--text-secondary);">▸ INPUT</h3>
+            <div style="display: flex; gap: var(--spacing-sm); align-items: stretch;">
+                <form onsubmit="return false;" style="flex: 1;">
+                    <input type="text" id="equation" placeholder="8+3-4=0" autocomplete="off" style="height: 42px;">
+                </form>
+                <div id="equation-preview" style="flex: 1; padding: var(--spacing-sm); background: var(--bg-tertiary); border: 1px solid var(--border-color); min-height: 42px; display: flex; align-items: center; justify-content: center;"></div>
+                <button id="solve-btn" class="btn btn-primary" style="padding: 0 20px; letter-spacing: 0.08em;">&#9654; SOLVE</button>
+            </div>
+        </div>
+
+        <!-- 示例问题 -->
+        <div class="card" style="margin-bottom: var(--spacing-md);">
+            <h3 class="examples-title" style="font-size: 0.82rem; margin-bottom: var(--spacing-sm); letter-spacing: 0.08em; color: var(--text-secondary);">▸ EXAMPLES</h3>
+            <div id="samples" style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;"></div>
+        </div>
+
+        <!-- 结果显示 -->
+        <div id="status"></div>
+
+        <!-- 页脚 -->
+        <footer style="margin-top: var(--spacing-md); padding-top: var(--spacing-sm); border-top: 1px solid var(--border-color); text-align: center; font-size: 0.7rem; opacity: 0.5; font-family: 'matchstick', 'Courier New', monospace; letter-spacing: 0.08em;">
+            <p>GRAPH EDITION | <a href="https://github.com/8188/matchstick-solver-graph" target="_blank" style="color: var(--accent-primary); text-decoration: none;">GITHUB</a></p>
+        </footer>
+    </div>
+
+    <!-- 脚本 -->
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>
