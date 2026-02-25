@@ -125,6 +125,16 @@ export class RulesManager {
                 const remove2Cell = document.createElement('td');
                 this.renderRuleCell(remove2Cell, rule.remove2 || []);
                 row.appendChild(remove2Cell);
+                
+                // 移1减1根（Move 1 & Remove 1）
+                const moveSubCell = document.createElement('td');
+                this.renderRuleCell(moveSubCell, rule.moveSub || []);
+                row.appendChild(moveSubCell);
+                
+                // 移1加1根（Move 1 & Add 1）
+                const moveAddCell = document.createElement('td');
+                this.renderRuleCell(moveAddCell, rule.moveAdd || []);
+                row.appendChild(moveAddCell);
             }
             
             tbody.appendChild(row);

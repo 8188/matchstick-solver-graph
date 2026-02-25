@@ -127,6 +127,17 @@ body:not([data-theme="dark"])::after {
     padding: var(--spacing-md);
 }
 
+/* 隐藏数字输入框的增减按钮 */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
 /* 卡片 - 报纸风 + 科技边框 */
 .card {
     background-color: var(--bg-secondary);

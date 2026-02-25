@@ -46,6 +46,29 @@
                 </div>
             </div>
             
+            <!-- 搜索上限输入框 -->
+            <div style="margin-bottom: var(--spacing-sm); display: flex; align-items: center; gap: var(--spacing-sm);">
+                <label for="max-mutations" class="max-mutations-label" data-i18n="maxMutations" style="font-size: 0.82rem; font-family: 'matchstick', 'Courier New', monospace; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em;">
+                    搜索上限
+                </label>
+                <input type="number" id="max-mutations" 
+                       value="10000" 
+                       min="1000" 
+                       max="500000" 
+                       step="1000"
+                       style="width: 120px; height: 32px; padding: 4px 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-family: 'matchstick', 'Courier New', monospace; font-size: 0.8rem;">
+                <span style="font-size: 0.7rem; opacity: 0.6;">(1000-500000)</span>
+                <button id="filter-signs-btn" 
+                        class="btn btn-secondary" 
+                        data-active="false"
+                        data-i18n="filterSigns"
+                        data-i18n-title="filterSignsTooltip"
+                        title="过滤带正负号的解"
+                        style="padding: 0 16px; letter-spacing: 0.08em; white-space: nowrap; margin-left: 16px;">
+                    ▸ 过滤±号
+                </button>
+            </div>
+            
             <div id="char-preview" style="display: flex; gap: 4px; flex-wrap: wrap; background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 4px; min-height: 32px; align-items: center;"></div>
         </div>
 

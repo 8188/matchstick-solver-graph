@@ -52,6 +52,8 @@ export class I18n {
                 selfTransform2: '自身变换（移动两根）',
                 addTwo: '添加两根得到...',
                 removeTwo: '移除两根得到...',
+                moveSub: '移1减1根得到...',
+                moveAdd: '移1加1根得到...',
                 emptySpace: '空格',
                 
                 // 移动火柴数选择
@@ -63,6 +65,12 @@ export class I18n {
                 langToggle: '切换语言',
                 backButtonTitle: '返回',
                 rulesButton: '规则',
+                
+                // 高级配置
+                maxMutations: '搜索上限',
+                filterSigns: '过滤±号',
+                filterSignsTooltip: '过滤带正负号的解',
+                position: '位置',
                 
                 // 页脚
                 madeWith: '由 FalkorDB 驱动 |',
@@ -113,6 +121,8 @@ export class I18n {
                 selfTransform2: 'Self Transform (move 2)',
                 addTwo: 'Add two to get...',
                 removeTwo: 'Remove two to get...',
+                moveSub: 'Move 1 & Remove 1 to get...',
+                moveAdd: 'Move 1 & Add 1 to get...',
                 emptySpace: 'space',
                 
                 // Move count selection
@@ -124,6 +134,12 @@ export class I18n {
                 langToggle: 'Switch Language',
                 backButtonTitle: 'Back',
                 rulesButton: 'RULES',
+                
+                // Advanced Configuration
+                maxMutations: 'Search Limit',
+                filterSigns: 'Filter ±',
+                filterSignsTooltip: 'Filter solutions with +/- signs',
+                position: 'Position',
                 
                 // Footer
                 madeWith: 'Powered by FalkorDB |',

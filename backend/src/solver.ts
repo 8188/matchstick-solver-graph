@@ -717,6 +717,198 @@ export class MatchstickSolver {
       }
     }
     
+    // 情形：MOVE_SUB + ADD_1 组合（"移动一根&移除一根" + 添加一根）
+    // 注意：需要在规则图中有 MOVE_SUB 关系（移除并移动，净-1根火柴）
+    const moveSubCache = new Map<string, string[]>();
+    await Promise.all(uniqueTokens.map(async t => {
+      moveSubCache.set(t, await this.getTransformations(t, mode, 'MOVE_SUB'));
+    }));
+    
+    for (let i = 0; i < tokens.length; i++) {
+      const moveSubTransforms = moveSubCache.get(tokens[i]) ?? [];
+      
+      for (const afterMoveSub of moveSubTransforms) {
+        const step1 = [...tokens];
+        step1[i] = afterMoveSub;
+        
+        // 在另一个位置尝试 ADD_1
+        for (let j = 0; j < step1.length; j++) {
+          if (i === j) continue;
+          
+          const additions = add1Cache.get(step1[j]) ?? await this.getTransformations(step1[j], mode, 'ADD_1');
+          
+          for (const afterAdd of additions) {
+            const newTokens = [...step1];
+            newTokens[j] = afterAdd;
+            
+            candidatesExplored++;
+            
+            const cleaned = newTokens.filter(t => t !== ' ' && t !== '');
+            
+            if (this.isValidEquation(cleaned)) {
+              const eq = cleaned.join('').replace(/ /g, '');
+              if (!singleMoveEquations.has(eq)) {
+                solutions.push({
+                  equation: cleaned.join(''),
+                  changes: [
+                    { position: i, from: tokens[i], to: afterMoveSub, operation: 'MOVE_SUB' },
+                    { position: j, from: step1[j], to: afterAdd, operation: 'ADD_1' }
+                  ]
+                });
+              }
+            }
+          }
+        }
+        
+        // 尝试通过插入空格位置添加（spaceAdd1）
+        for (const newToken of spaceAdd1) {
+          for (let insertIdx = 0; insertIdx <= step1.length; insertIdx++) {
+            const newTokens = [...step1];
+            newTokens.splice(insertIdx, 0, newToken);
+            
+            candidatesExplored++;
+            
+            const cleaned = newTokens.filter(t => t !== ' ' && t !== '');
+            
+            if (this.isValidEquation(cleaned)) {
+              const eq = cleaned.join('').replace(/ /g, '');
+              if (!singleMoveEquations.has(eq)) {
+                solutions.push({
+                  equation: cleaned.join(''),
+                  changes: [
+                    { position: i, from: tokens[i], to: afterMoveSub, operation: 'MOVE_SUB' },
+                    { position: insertIdx, from: 'SPACE', to: newToken, operation: 'ADD_1' }
+                  ]
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // 情形：MOVE_ADD + REMOVE_1 组合（"移动一根&添加一根" + 移除一根）
+    const moveAddCache = new Map<string, string[]>();
+    await Promise.all(uniqueTokens.map(async t => {
+      moveAddCache.set(t, await this.getTransformations(t, mode, 'MOVE_ADD'));
+    }));
+    
+    for (let i = 0; i < tokens.length; i++) {
+      const moveAddTransforms = moveAddCache.get(tokens[i]) ?? [];
+      
+      for (const afterMoveAdd of moveAddTransforms) {
+        const step1 = [...tokens];
+        step1[i] = afterMoveAdd;
+        
+        // 在另一个位置尝试 REMOVE_1（提供火柴给 moveAdd 位置）
+        for (let j = 0; j < step1.length; j++) {
+          if (i === j) continue;
+          
+          const removals = remove1Cache.get(step1[j]) ?? await this.getTransformations(step1[j], mode, 'REMOVE_1');
+          
+          for (const afterRemove of removals) {
+            const newTokens = [...step1];
+            newTokens[j] = afterRemove;
+            
+            candidatesExplored++;
+            
+            const cleaned = newTokens.filter(t => t !== ' ' && t !== '');
+            
+            if (this.isValidEquation(cleaned)) {
+              const eq = cleaned.join('').replace(/ /g, '');
+              if (!singleMoveEquations.has(eq)) {
+                solutions.push({
+                  equation: cleaned.join(''),
+                  changes: [
+                    { position: i, from: tokens[i], to: afterMoveAdd, operation: 'MOVE_ADD' },
+                    { position: j, from: step1[j], to: afterRemove, operation: 'REMOVE_1' }
+                  ]
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // 情形：REMOVE_1 + REMOVE_1 + ADD_2 组合（两次移除 + 一次添加两根）
+    for (let i = 0; i < tokens.length; i++) {
+      const removals1 = remove1Cache.get(tokens[i]) ?? [];
+      
+      for (const afterRemove1 of removals1) {
+        const step1 = [...tokens];
+        step1[i] = afterRemove1;
+        
+        // 在另一位置再次 REMOVE_1
+        for (let j = 0; j < step1.length; j++) {
+          if (i === j) continue;
+          
+          const removals2 = remove1Cache.get(step1[j]) ?? await this.getTransformations(step1[j], mode, 'REMOVE_1');
+          
+          for (const afterRemove2 of removals2) {
+            const step2 = [...step1];
+            step2[j] = afterRemove2;
+            
+            // 在第三个位置 ADD_2
+            for (let k = 0; k < step2.length; k++) {
+              if (k === i || k === j) continue;
+              
+              const additions2 = add2Cache.get(step2[k]) ?? await this.getTransformations(step2[k], mode, 'ADD_2');
+              
+              for (const afterAdd2 of additions2) {
+                const newTokens = [...step2];
+                newTokens[k] = afterAdd2;
+                
+                candidatesExplored++;
+                
+                const cleaned = newTokens.filter(t => t !== ' ' && t !== '');
+                
+                if (this.isValidEquation(cleaned)) {
+                  const eq = cleaned.join('').replace(/ /g, '');
+                  if (!singleMoveEquations.has(eq)) {
+                    solutions.push({
+                      equation: cleaned.join(''),
+                      changes: [
+                        { position: i, from: tokens[i], to: afterRemove1, operation: 'REMOVE_1' },
+                        { position: j, from: step1[j], to: afterRemove2, operation: 'REMOVE_1' },
+                        { position: k, from: step2[k], to: afterAdd2, operation: 'ADD_2' }
+                      ]
+                    });
+                  }
+                }
+              }
+            }
+            
+            // 尝试通过插入空格位置添加两根（spaceAdd2）
+            for (const newToken of spaceAdd2) {
+              for (let insertIdx = 0; insertIdx <= step2.length; insertIdx++) {
+                const newTokens = [...step2];
+                newTokens.splice(insertIdx, 0, newToken);
+                
+                candidatesExplored++;
+                
+                const cleaned = newTokens.filter(t => t !== ' ' && t !== '');
+                
+                if (this.isValidEquation(cleaned)) {
+                  const eq = cleaned.join('').replace(/ /g, '');
+                  if (!singleMoveEquations.has(eq)) {
+                    solutions.push({
+                      equation: cleaned.join(''),
+                      changes: [
+                        { position: i, from: tokens[i], to: afterRemove1, operation: 'REMOVE_1' },
+                        { position: j, from: step1[j], to: afterRemove2, operation: 'REMOVE_1' },
+                        { position: insertIdx, from: 'SPACE', to: newToken, operation: 'ADD_2' }
+                      ]
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
     return { solutions: this.dedup(solutions), candidatesExplored };
   }
   

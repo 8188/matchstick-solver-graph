@@ -170,6 +170,16 @@ export class GraphBuilder {
     for (const target of char.remove2) {
       await this.createDirectionalEdge(from, target, mode, 'REMOVE_2');
     }
+    
+    // MOVE_SUB 关系（定向，净-1）
+    for (const target of char.moveSub) {
+      await this.createDirectionalEdge(from, target, mode, 'MOVE_SUB');
+    }
+    
+    // MOVE_ADD 关系（定向，净+1）
+    for (const target of char.moveAdd) {
+      await this.createDirectionalEdge(from, target, mode, 'MOVE_ADD');
+    }
   }
   
   /**

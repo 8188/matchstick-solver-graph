@@ -2,7 +2,7 @@
 
 [ 中文](./README.md) | [ English](#)
 
-**Version: v0.1**
+**Version: v0.2**
 
 ---
 

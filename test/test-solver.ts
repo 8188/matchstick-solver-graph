@@ -247,6 +247,8 @@ async function main() {
     ['64+98=11', 1],
     ['41+29=78', 6],
     ['79-39=17', 7],
+    ['94-35=48', 1],
+    ['1+7=8+8', 1],
   ];
   
   for (const [equation, expected] of doubleMoveTests) {

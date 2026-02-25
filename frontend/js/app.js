@@ -15,6 +15,7 @@ export class App {
         this.currentMoveCount = 1;
         this.currentTheme = 'dark';
         this.apiUrl = 'http://localhost:8080/api';
+        this.filterSigns = false;
         
         // 初始化规则管理器
         this.rulesManager = new RulesManager(this);
@@ -59,6 +60,7 @@ export class App {
         this.setupLanguageToggle();
         this.setupInput();
         this.setupSolveButton();
+        this.setupFilterSignsButton();
         this.setupRulesButton();
         this.renderSamples();
         this.renderCharPreview();
@@ -213,6 +215,29 @@ export class App {
         if (!solveBtn) return;
 
         solveBtn.addEventListener('click', () => this.solve());
+    }
+
+    /**
+     * 设置过滤正负号按钮
+     */
+    setupFilterSignsButton() {
+        const filterBtn = document.querySelector('#filter-signs-btn');
+        if (!filterBtn) return;
+
+        filterBtn.addEventListener('click', () => {
+            this.filterSigns = !this.filterSigns;
+            
+            // 切换按钮样式
+            if (this.filterSigns) {
+                filterBtn.className = 'btn btn-primary';
+                filterBtn.dataset.active = 'true';
+                filterBtn.textContent = '✓ 过滤±号';
+            } else {
+                filterBtn.className = 'btn btn-secondary';
+                filterBtn.dataset.active = 'false';
+                filterBtn.textContent = '▸ 过滤±号';
+            }
+        });
     }
 
     /**
@@ -383,6 +408,23 @@ export class App {
         const input = document.querySelector('#equation');
         if (input) input.placeholder = this.i18n.t('inputPlaceholder');
 
+        // 更新所有带 data-i18n 的元素
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            const text = this.i18n.t(key);
+            if (el.tagName === 'BUTTON' && text.indexOf('▸') === -1 && text.indexOf('◀') === -1 && text.indexOf('■') === -1) {
+                el.textContent = `▸ ${text}`;
+            } else {
+                el.textContent = text;
+            }
+        });
+
+        // 更新所有带 data-i18n-title 的元素
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+            const key = el.getAttribute('data-i18n-title');
+            el.title = this.i18n.t(key);
+        });
+
         // 更新规则页文本
         this.updateRulesPageText();
     }
@@ -404,13 +446,25 @@ export class App {
         // 更新表头
         const thead = document.querySelector('thead tr');
         if (thead) {
-            thead.innerHTML = `
-                <th>${this.i18n.t('character')}</th>
-                <th>${this.i18n.t('matchCount')}</th>
-                <th>${this.currentMoveCount === 1 ? this.i18n.t('selfTransform') : this.i18n.t('selfTransform2')}</th>
-                <th>${this.currentMoveCount === 1 ? this.i18n.t('addOne') : this.i18n.t('addTwo')}</th>
-                <th>${this.currentMoveCount === 1 ? this.i18n.t('removeOne') : this.i18n.t('removeTwo')}</th>
-            `;
+            if (this.currentMoveCount === 1) {
+                thead.innerHTML = `
+                    <th>${this.i18n.t('character')}</th>
+                    <th>${this.i18n.t('matchCount')}</th>
+                    <th>${this.i18n.t('selfTransform')}</th>
+                    <th>${this.i18n.t('addOne')}</th>
+                    <th>${this.i18n.t('removeOne')}</th>
+                `;
+            } else {
+                thead.innerHTML = `
+                    <th>${this.i18n.t('character')}</th>
+                    <th>${this.i18n.t('matchCount')}</th>
+                    <th>${this.i18n.t('selfTransform2')}</th>
+                    <th>${this.i18n.t('addTwo')}</th>
+                    <th>${this.i18n.t('removeTwo')}</th>
+                    <th>${this.i18n.t('moveSub')}</th>
+                    <th>${this.i18n.t('moveAdd')}</th>
+                `;
+            }
         }
 
         // 更新按钮
@@ -456,7 +510,8 @@ export class App {
                 body: JSON.stringify({
                     equation,
                     mode: this.currentMode,
-                    moveCount: this.currentMoveCount
+                    moveCount: this.currentMoveCount,
+                    maxSolutions: parseInt(document.querySelector('#max-mutations')?.value || '10000')
                 })
             });
 
@@ -484,7 +539,31 @@ export class App {
             return;
         }
 
-        if (!data.solutions || data.solutions.length === 0) {
+        // 如果启用过滤，过滤掉开头或等号后带正负号的解
+        let solutions = data.solutions || [];
+        if (this.filterSigns && solutions.length > 0) {
+            const originalCount = solutions.length;
+            solutions = solutions.filter(sol => {
+                const eq = sol.equation || '';
+                // 过滤掉开头或等号后有正负号的等式（如 +8=8, 8=-8, 1+7=+8 等）
+                return !/^[+\-]|=[+\-]/.test(eq);
+            });
+            
+            // 如果过滤后没有解，显示提示
+            if (solutions.length === 0) {
+                statusElement.innerHTML = `
+                    <div class="card">
+                        <div style="text-align: center; padding: var(--spacing-lg); color: var(--text-secondary);">
+                            原有 ${originalCount} 个解，过滤后无符合条件的解<br>
+                            <small style="opacity:0.6;">请关闭过滤或尝试其他输入</small>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+        }
+
+        if (solutions.length === 0) {
             statusElement.innerHTML = `
             <div class="card">
                 <div style="text-align: center; padding: var(--spacing-lg); color: var(--text-secondary); font-size: 0.85rem;">
@@ -499,12 +578,13 @@ export class App {
         const html = `
             <div class="card fade-in">
                 <div style="font-size: 0.85rem; margin-bottom: var(--spacing-md); color: var(--accent-primary); font-weight: bold; letter-spacing: 0.06em; text-transform: uppercase;">
-                    ▸ ${this.i18n.t('foundSolutions')} ${data.solutions.length} ${this.i18n.t('solutions')}
+                    ▸ ${this.i18n.t('foundSolutions')} ${solutions.length} ${this.i18n.t('solutions')}
+                    ${this.filterSigns ? '<span style="color: var(--accent-secondary);"> (已过滤±号)</span>' : ''}
                 </div>
                 
                 <div class="stats">
                     <div class="stat-item">
-                        <div class="stat-value">${data.solutions.length}</div>
+                        <div class="stat-value">${solutions.length}</div>
                         <div class="stat-label">${this.i18n.t('solutionCount')}</div>
                     </div>
                     <div class="stat-item">
@@ -524,9 +604,9 @@ export class App {
                 <div class="solutions-grid" id="solutions-grid-container">
                 </div>
                 
-                ${data.solutions.length > 20 ? `
+                ${solutions.length > 20 ? `
                     <div style="text-align: center; margin-top: var(--spacing-md); color: var(--text-secondary); font-size: 0.75rem; letter-spacing: 0.05em;">
-                        ... ${data.solutions.length - 20} ${this.i18n.t('moreSolutions') || 'more solutions'}
+                        ... ${solutions.length - 20} ${this.i18n.t('moreSolutions') || 'more solutions'}
                     </div>
                 ` : ''}
             </div>
@@ -535,7 +615,7 @@ export class App {
         statusElement.innerHTML = html;
         
         // 使用 SVG 渲染解决方案
-        this.renderSolutionsWithSVG(data.solutions.slice(0, 20));
+        this.renderSolutionsWithSVG(solutions.slice(0, 20));
     }
 
     /**
@@ -563,7 +643,7 @@ export class App {
                 const changesDiv = document.createElement('div');
                 changesDiv.className = 'solution-changes';
                 changesDiv.innerHTML = sol.changes.map(c => 
-                    `位置${c.position}: ${c.from} → ${c.to} (${c.operation})`
+                    `${this.i18n.t('position')}${c.position}: ${c.from} → ${c.to} (${c.operation})`
                 ).join('<br>');
                 card.appendChild(changesDiv);
             }

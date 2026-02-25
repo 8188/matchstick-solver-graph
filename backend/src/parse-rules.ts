@@ -12,6 +12,8 @@ export interface RuleCharacter {
   move2: string[];
   add2: string[];
   remove2: string[];
+  moveSub: string[];
+  moveAdd: string[];
 }
 
 export interface RuleSet {
@@ -102,7 +104,9 @@ export class RuleParser {
       remove1: this.parseCell(cells[4]),
       move2: this.parseCell(cells[5]),
       add2: this.parseCell(cells[6]),
-      remove2: this.parseCell(cells[7])
+      remove2: this.parseCell(cells[7]),
+      moveSub: this.parseCell(cells[8] || ''),
+      moveAdd: this.parseCell(cells[9] || '')
     };
   }
   
