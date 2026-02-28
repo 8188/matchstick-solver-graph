@@ -2,15 +2,19 @@
 
 [ 中文](#) | [ English](./README.en.md)
 
-**Version: v0.2**
+**Version: v0.3**
 
 ---
 
-基于 **FalkorDB 图数据库**的高性能火柴棒等式求解工具，是 [matchstick-puzzle-solver](https://github.com/8188/matchstick-puzzle-solver) 的升级版。将字符变换规则建模为图，通过 Cypher 查询代替穷举搜索，大幅提升求解效率和可扩展性。
+基于**图数据库**的高性能火柴棒等式求解工具，是 [matchstick-puzzle-solver](https://github.com/8188/matchstick-puzzle-solver) 的升级版。将字符变换规则建模为图，通过 Cypher 查询代替穷举搜索，大幅提升求解效率和可扩展性。
+
+**现已支持双数据库选择：**
+- **FalkorDB**：轻量级 Redis 图数据库
+- **AuraDB**：Neo4j 云原生图数据库
 
 ## 特性
 
--  🗄️  **图数据库驱动**：所有字符变换规则存储在 FalkorDB 图中，通过 Cypher 查询获取
+-  🗄️  **双数据库支持**：灵活选择 FalkorDB 或 AuraDB（Neo4j）作为图存储引擎
 -  🔀  **双模式支持**：标准七段码模式 + 手写模式（`(n)H` 语法）
 -  ✏️  **自定义规则**：支持在线编辑并写回图数据库
 -  🔧  **移动选择**：支持移动 1 根或 2 根火柴
@@ -22,14 +26,25 @@
 ### 前置依赖
 
 - Node.js 18+
-- [FalkorDB](https://github.com/FalkorDB/FalkorDB)
+- 以下数据库之一：
+  - **FalkorDB**（推荐本地开发）
+  - **AuraDB**（Neo4j 云服务）
+
+### 数据库选择
+
+#### 选项 1: 使用 FalkorDB（本地）
 
 ```bash
 # 启动 FalkorDB
 docker run -p 6379:6379 -it --rm falkordb/falkordb:latest
 ```
 
-### 安装与运行
+#### 选项 2: 使用 AuraDB（云端）
+
+1. 访问 [Neo4j AuraDB](https://neo4j.com/product/aura/) 创建免费实例
+2. 获取连接信息（URI、用户名、密码）
+
+### 安装与配置
 
 ```bash
 git clone <repo-url>
@@ -38,7 +53,15 @@ cd matchstick-solver-graph
 # 安装依赖
 npm install
 
-# 初始化图数据（仅首次）
+# 配置数据库
+cp .env.example .env
+# 编辑 .env 文件，选择数据库类型并填写连接信息
+```
+
+### 初始化与运行
+
+```bash
+# 初始化图数据（仅首次或规则更新后）
 npm run init-graph
 
 # 启动后端服务（默认端口 8080）
@@ -56,24 +79,29 @@ npx http-server frontend -p 3000
 matchstick-solver-graph/
  backend/
     src/
-        solver.ts          # 核心求解器（图查询 + 验证 + 去重）
-        index.ts           # Express API 服务器
-        graph-builder.ts   # 图数据初始化（写入变换规则）
-        parse-rules.ts     # 规则解析工具
+        database/                 # 数据库适配器层
+           IGraphDatabase.ts      # 统一接口
+           FalkorDBAdapter.ts     # FalkorDB 实现
+           AuraDBAdapter.ts       # AuraDB 实现
+        config.ts                 # 配置管理（.env 支持）
+        solver.ts                 # 核心求解器
+        index.ts                  # Express API 服务器
+        graph-builder.ts          # 图数据初始化
+        parse-rules.ts            # 规则解析工具
  frontend/
-    index.html             # 主页面
-    rules.html             # 规则查看页
+    index.html                    # 主页面
+    rules.html                    # 规则查看页
     js/
-       app.js             # 主应用控制器
-       i18n.js            # 国际化
-       ...
+       app.js                     # 主应用控制器
+       i18n.js                    # 国际化
     styles/
-        main.css           # 全局样式（双主题变量）
-        components.css     # 组件样式
-        animations.css     # 动画
+        main.css                  # 全局样式
+        components.css            # 组件样式
+        animations.css            # 动画
  test/
-    test-solver.ts         # 集成测试（30 个测试用例）
-    check-graph.ts         # 图数据校验
+    test-solver.ts                # 集成测试
+    check-graph.ts                # 图数据校验
+ .env.example                     # 环境变量模板
  package.json
 ```
 
@@ -114,11 +142,19 @@ npm test -- --no-cache
 | 特性 | matchstick-puzzle-solver | matchstick-solver-graph |
 |------|--------------------------|-------------------------|
 | 架构 | 纯前端，规则内存存储 | 前后端分离，图数据库 |
-| 规则存储 | JS 对象 | FalkorDB 图节点/边 |
+| 数据库 | 无 | FalkorDB / AuraDB 可选 |
+| 规则存储 | JS 对象 | 图节点/边 |
 | 查询方式 | 穷举 + 剪枝 | Cypher 图查询 |
 | 可扩展性 | 有限 | 高（动态添加规则） |
-| 部署复杂度 | 极低（静态页面） | 中（需要 Docker） |
+| 配置方式 | 硬编码 | .env 环境变量 |
+| 部署复杂度 | 极低（静态页面） | 中（需要数据库） |
 | 测试方式 | 纯前端 node 脚本 | HTTP API 集成测试 |
+
+### 性能说明
+
+**FalkorDB** 表现最佳，支持真正的并发查询，延迟极低，是本地开发和测试的首选。
+
+**AuraDB** 虽然功能完全相同，但由于 Neo4j 的会话管理限制和网络延迟，查询速度相对 FalkorDB 慢很多。尽管如此，AuraDB 仍比原始的 matchstick-puzzle-solver 版本快很多倍，优势在于可扩展性和云部署的便利性。
 
 ##  TODO List
 
@@ -145,6 +181,8 @@ MIT License
 
 ## 致谢
 
-- 图数据库支持：[FalkorDB](https://github.com/FalkorDB/FalkorDB)
+- 图数据库支持：
+  - [FalkorDB](https://github.com/FalkorDB/FalkorDB) - Redis 图数据库
+  - [Neo4j AuraDB](https://neo4j.com/product/auradb/) - 云原生图数据库
 
 ---

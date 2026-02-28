@@ -4,17 +4,22 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { MatchstickSolver, type SolveOptions } from './solver.js';
 import { RuleParser, type RuleSet } from './parse-rules.js';
+import { loadConfig, createDatabaseAdapter, printConfig } from './config.js';
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+
+// 加载配置
+const config = loadConfig();
+const PORT = config.port;
 
 // 中间件
 app.use(cors());
 app.use(express.json());
 app.use(express.static('frontend'));
 
-// 初始化求解器
-const solver = new MatchstickSolver();
+// 创建数据库适配器和求解器
+const db = createDatabaseAdapter(config);
+const solver = new MatchstickSolver(db);
 
 /**
  * 健康检查端点
@@ -231,10 +236,12 @@ app.get('/api/cache/stats', (req, res) => {
  */
 async function startServer() {
   try {
-    // 连接到FalkorDB
-    console.log('🔌 Connecting to FalkorDB...');
+    // 打印配置信息
+    printConfig(config);
+    
+    // 连接到数据库
+    console.log(`🔌 Connecting to ${config.database.type.toUpperCase()}...`);
     await solver.connect();
-    console.log('✅ Connected to FalkorDB');
     
     // 启动HTTP服务器
     app.listen(PORT, () => {

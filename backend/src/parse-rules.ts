@@ -159,6 +159,3 @@ export class RuleParser {
     console.log(`   Handwritten mode: ${handwrittenRules.characters.length} characters`);
   }
 }
-
-// 如果直接执行则运行
-RuleParser.parseAllRules();

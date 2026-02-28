@@ -11,6 +11,45 @@
 
 ---
 
+## [v0.3] - 2026-02-28
+
+### 新增
+- ✨ **多数据库支持**：新增 AuraDB（Neo4j）作为可选图数据库
+  - 实现数据库抽象层（`IGraphDatabase` 接口）
+  - 创建 `FalkorDBAdapter` 和 `AuraDBAdapter` 适配器
+  - 支持通过 `.env` 文件配置数据库类型
+- 📝 **环境变量配置**：新增 `.env` 文件支持
+  - 支持 `DB_TYPE`、`GRAPH_NAME`、`PORT` 等配置
+  - FalkorDB 配置：`FALKORDB_URL`
+  - AuraDB 配置：`AURADB_URI`、`AURADB_USERNAME`、`AURADB_PASSWORD`、`AURADB_DATABASE`
+- 📦 **新增依赖**
+  - `neo4j-driver`: Neo4j 官方驱动（用于 AuraDB）
+  - `dotenv`: 环境变量加载
+
+### 改进
+- 🏗️ **架构重构**
+  - 将 `GraphBuilder` 和 `MatchstickSolver` 从直接使用 Redis 客户端改为使用数据库适配器
+  - 统一数据库查询接口，提高代码可维护性和可测试性
+  - 更新测试文件 `check-graph.ts` 支持配置化数据库选择
+- 📖 **文档更新**
+  - 更新 README 中英文版，添加数据库选择说明
+  - 创建 `.env.example` 模板文件
+
+### 修复
+- 🐛 **AuraDB 并发查询问题**
+  - 修复 Neo4j Session 不支持并发事务导致的查询结果不完整问题
+  - 为每个查询创建独立的 session，确保 `Promise.all` 并行查询正常工作
+- 🐛 **Neo4j Integer 类型转换**
+  - 修复 Neo4j 返回的 Integer 对象（`{low, high}`）未正确转换为 JavaScript number 的问题
+  - 添加 `convertNeo4jValue` 方法处理 Neo4j 特殊类型（Integer、Date、DateTime、Point 等）
+
+### 技术细节
+- 数据库适配器统一返回格式：`{ data: any[][], metadata?: any }`
+- 支持参数校验：AuraDB 配置缺失时抛出明确错误
+- 配置打印：启动时显示当前数据库类型和连接信息（隐藏敏感数据）
+
+---
+
 ## [v0.2] - 2026-02-19
 
 ### 新增

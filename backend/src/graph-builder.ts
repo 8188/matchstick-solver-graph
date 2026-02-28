@@ -1,37 +1,27 @@
-import { createClient } from 'redis';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { RuleSet, RuleCharacter } from './parse-rules.js';
+import { IGraphDatabase } from './database';
 
 /**
- * FalkorDB图构建器
+ * 图构建器（支持多种图数据库）
  * 从规则定义构建字符变换图
  */
 export class GraphBuilder {
-  private client: any;
-  private graphName = 'matchstick';
-  
-  constructor(private redisUrl: string = 'redis://localhost:6379') {}
+  constructor(private db: IGraphDatabase) {}
   
   /**
-   * 连接到FalkorDB
+   * 连接到数据库
    */
   async connect(): Promise<void> {
-    this.client = createClient({ url: this.redisUrl });
-    
-    this.client.on('error', (err: Error) => {
-      console.error('Redis Client Error:', err);
-    });
-    
-    await this.client.connect();
-    console.log('✅ Connected to FalkorDB');
+    await this.db.connect();
   }
   
   /**
-   * 断开FalkorDB连接
+   * 断开数据库连接
    */
   async disconnect(): Promise<void> {
-    await this.client.quit();
+    await this.db.disconnect();
   }
   
   /**
@@ -39,7 +29,7 @@ export class GraphBuilder {
    */
   private async query(cypher: string): Promise<any> {
     try {
-      const result = await this.client.graph.query(this.graphName, cypher);
+      const result = await this.db.query(cypher);
       return result;
     } catch (error: any) {
       console.error('Query error:', error.message);
@@ -51,28 +41,14 @@ export class GraphBuilder {
    * 清除现有图
    */
   async clearGraph(): Promise<void> {
-    try {
-      await this.client.graph.delete(this.graphName);
-      console.log('🗑️  Cleared existing graph');
-    } catch (error: any) {
-      // 图不存在，这是正常的
-      console.log('📝 No existing graph to clear');
-    }
+    await this.db.clearGraph();
   }
   
   /**
    * 创建索引以加快查询速度
    */
   async createIndexes(): Promise<void> {
-    try {
-      await this.query('CREATE INDEX ON :Character(symbol)');
-      await this.query('CREATE INDEX ON :Character(mode)');
-      console.log('📇 Created indexes');
-    } catch (error: any) {
-      if (!error.message.includes('already exists')) {
-        throw error;
-      }
-    }
+    await this.db.createIndexes();
   }
   
   /**
@@ -259,7 +235,13 @@ export class GraphBuilder {
  * 主入口点
  */
 async function main() {
-  const builder = new GraphBuilder();
+  const { loadConfig, createDatabaseAdapter, printConfig } = await import('./config.js');
+  
+  const config = loadConfig();
+  printConfig(config);
+  
+  const db = createDatabaseAdapter(config);
+  const builder = new GraphBuilder(db);
   
   try {
     await builder.connect();

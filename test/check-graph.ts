@@ -1,43 +1,36 @@
 /**
  * 检查图数据库中的数据
  */
-import { createClient } from 'redis';
+import { loadConfig, createDatabaseAdapter } from '../backend/src/config.js';
+import { IGraphDatabase } from '../backend/src/database/index.js';
 
 async function checkGraph() {
-  const client = createClient({ url: 'redis://localhost:6379' });
+  const config = loadConfig();
+  const db = createDatabaseAdapter(config);
   
   try {
-    await client.connect();
-    console.log('✅ 连接到FalkorDB\n');
-    
-    const graphName = 'matchstick';
+    await db.connect();
+    console.log(`✅ 连接到 ${config.database.type.toUpperCase()}\n`);
     
     // 1. 检查节点总数
     console.log('📊 节点统计:');
-    const totalNodes = await client.graph.query(
-      graphName,
-      'MATCH (c:Character) RETURN count(c) as count'
-    );
-    // FalkorDB返回格式: data = [[value1], [value2], ...]
+    const totalNodes = await db.query('MATCH (c:Character) RETURN count(c) as count');
     console.log(`   总节点数: ${totalNodes.data[0]?.[0] || 0}`);
     
     // 2. 按模式统计
-    const standardNodes = await client.graph.query(
-      graphName,
+    const standardNodes = await db.query(
       "MATCH (c:Character {mode: 'standard'}) RETURN count(c) as count"
     );
     console.log(`   标准模式节点: ${standardNodes.data[0]?.[0] || 0}`);
     
-    const handwrittenNodes = await client.graph.query(
-      graphName,
+    const handwrittenNodes = await db.query(
       "MATCH (c:Character {mode: 'handwritten'}) RETURN count(c) as count"
     );
     console.log(`   手写模式节点: ${handwrittenNodes.data[0]?.[0] || 0}`);
     
     // 3. 查看标准模式的一些节点
     console.log('\n📝 标准模式样例节点:');
-    const sampleStandard = await client.graph.query(
-      graphName,
+    const sampleStandard = await db.query(
       "MATCH (c:Character {mode: 'standard'}) RETURN c.symbol, c.matchsticks, c.category LIMIT 10"
     );
     
@@ -49,8 +42,7 @@ async function checkGraph() {
     
     // 4. 查看手写模式的一些节点
     console.log('\n✍️  手写模式样例节点:');
-    const sampleHandwritten = await client.graph.query(
-      graphName,
+    const sampleHandwritten = await db.query(
       "MATCH (c:Character {mode: 'handwritten'}) RETURN c.symbol, c.matchsticks, c.category LIMIT 10"
     );
     
@@ -62,15 +54,11 @@ async function checkGraph() {
     
     // 5. 检查关系总数
     console.log('\n🔗 关系统计:');
-    const totalRels = await client.graph.query(
-      graphName,
-      'MATCH ()-[r]->() RETURN count(r) as count'
-    );
+    const totalRels = await db.query('MATCH ()-[r]->() RETURN count(r) as count');
     console.log(`   总关系数: ${totalRels.data[0]?.[0] || 0}`);
     
     // 6. 按类型统计关系
-    const relTypes = await client.graph.query(
-      graphName,
+    const relTypes = await db.query(
       'MATCH ()-[r]->() RETURN type(r) as relType, count(r) as count ORDER BY count DESC'
     );
     
@@ -85,36 +73,31 @@ async function checkGraph() {
     console.log('\n🔍 测试字符转换规则:');
     
     // 测试数字5的转换
-    const transformsOf5 = await client.graph.query(
-      graphName,
+    const transformsOf5 = await db.query(
       "MATCH (c:Character {symbol: '5', mode: 'standard'})-[r:MOVE_1]->(target) RETURN target.symbol as target"
     );
     console.log(`   5 可以转换为 (MOVE_1): ${transformsOf5.data?.map((r: any[]) => r[0]).join(', ') || '无'}`);
     
     // 测试数字6的转换
-    const transformsOf6 = await client.graph.query(
-      graphName,
+    const transformsOf6 = await db.query(
       "MATCH (c:Character {symbol: '6', mode: 'standard'})-[r:MOVE_1]->(target) RETURN target.symbol as target"
     );
     console.log(`   6 可以转换为 (MOVE_1): ${transformsOf6.data?.map((r: any[]) => r[0]).join(', ') || '无'}`);
     
     // 测试空格添加火柴
-    const addsFromSpace = await client.graph.query(
-      graphName,
-      "MATCH (c:Character {symbol: ' ', mode: 'standard'})-[r:ADD_1]->(target) RETURN target.symbol as target"
+    const addsFromSpace = await db.query(
+      "MATCH (c:Character {symbol: 'SPACE', mode: 'standard'})-[r:ADD_1]->(target) RETURN target.symbol as target"
     );
     console.log(`   空格可以添加1根得到 (ADD_1): ${addsFromSpace.data?.map((r: any[]) => r[0]).join(', ') || '无'}`);
     
     // 测试0添加火柴
-    const addsFrom0 = await client.graph.query(
-      graphName,
+    const addsFrom0 = await db.query(
       "MATCH (c:Character {symbol: '0', mode: 'standard'})-[r:ADD_1]->(target) RETURN target.symbol as target"
     );
     console.log(`   0 可以添加1根得到 (ADD_1): ${addsFrom0.data?.map((r: any[]) => r[0]).join(', ') || '无'}`);
     
     // 测试8移除火柴
-    const removesFrom8 = await client.graph.query(
-      graphName,
+    const removesFrom8 = await db.query(
       "MATCH (c:Character {symbol: '8', mode: 'standard'})-[r:REMOVE_1]->(target) RETURN target.symbol as target"
     );
     console.log(`   8 可以移除1根得到 (REMOVE_1): ${removesFrom8.data?.map((r: any[]) => r[0]).join(', ') || '无'}`);
@@ -144,8 +127,7 @@ async function checkGraph() {
     let failCount = 0;
     
     for (const rule of standardRules) {
-      const result = await client.graph.query(
-        graphName,
+      const result = await db.query(
         `MATCH (c:Character {symbol: '${rule.from}', mode: 'standard'})-[r:${rule.rel}]->(target) RETURN target.symbol as target`
       );
       const targets = result.data?.map((r: any[]) => r[0]) || [];
@@ -181,8 +163,7 @@ async function checkGraph() {
     let hwFailCount = 0;
     
     for (const rule of handwrittenRules) {
-      const result = await client.graph.query(
-        graphName,
+      const result = await db.query(
         `MATCH (c:Character {symbol: '${rule.from}', mode: 'handwritten'})-[r:${rule.rel}]->(target) RETURN target.symbol as target`
       );
       const targets = result.data?.map((r: any[]) => r[0]) || [];
@@ -216,7 +197,7 @@ async function checkGraph() {
   } catch (error) {
     console.error('❌ 错误:', error);
   } finally {
-    await client.quit();
+    await db.disconnect();
   }
 }
 

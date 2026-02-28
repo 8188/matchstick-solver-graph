@@ -1,4 +1,4 @@
-import { createClient } from 'redis';
+import { IGraphDatabase } from './database';
 
 export interface SolveOptions {
   equation: string;
@@ -27,30 +27,27 @@ export interface SolveResult {
 }
 
 /**
- * MatchstickSolver — 基于 FalkorDB/RedisGraph 的火柴棒求解器实现。
+ * MatchstickSolver — 基于图数据库的火柴棒求解器实现。
  * 提供：字符串分词、图查询（变换）、穷举验证和结果去重；包含本地缓存以提高性能。
  */
 export class MatchstickSolver {
-  private client: any;
-  private graphName = 'matchstick';
   private transformationCache = new Map<string, string[]>();
   private validationCache = new Map<string, boolean>();
   
-  constructor(private redisUrl: string = 'redis://localhost:6379') {}
+  constructor(private db: IGraphDatabase) {}
   
   /**
-   * 连接到 Redis（用于运行 FalkorDB / RedisGraph 的图查询客户端）
+   * 连接到数据库
    */
   async connect(): Promise<void> {
-    this.client = createClient({ url: this.redisUrl });
-    await this.client.connect();
+    await this.db.connect();
   }
   
   /**
-   * 断开与 Redis 的连接
+   * 断开与数据库的连接
    */
   async disconnect(): Promise<void> {
-    await this.client.quit();
+    await this.db.disconnect();
   }
   
   /**
@@ -72,10 +69,10 @@ export class MatchstickSolver {
   }
   
   /**
-   * 内部方法：通过图客户端执行 Cypher 查询（封装 RedisGraph 接口）
+   * 内部方法：通过图数据库执行 Cypher 查询
    */
   private async query(cypher: string, params: any = {}): Promise<any> {
-    return await this.client.graph.query(this.graphName, cypher, { params });
+    return await this.db.query(cypher, params);
   }
   
   /**
@@ -127,7 +124,7 @@ export class MatchstickSolver {
       solutions: limitedSolutions,
       executionTime,
       candidatesExplored: totalCandidatesExplored,
-      method: 'FalkorDB Graph Query'
+      method: 'Graph Database Query'
     };
   }
   
@@ -937,7 +934,7 @@ export class MatchstickSolver {
     
     try {
       const result = await this.query(cypher);
-      // RedisGraph/FalkorDB 返回的数据为二维数组（[[val1], [val2], ...]），第一列是 symbol
+      // 图数据库返回的数据为二维数组（[[val1], [val2], ...]），第一列是 symbol
       const targets = result.data.map((row: any[]) => {
         const symbol = row[0];
         // 将数据库中的 'SPACE' 映射回实际的空格字符

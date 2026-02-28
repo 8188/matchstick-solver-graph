@@ -11,6 +11,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v0.3] - 2026-02-28
+
+### Added
+- ✨ **Multi-Database Support**: Added AuraDB (Neo4j) as an optional graph database
+  - Implemented database abstraction layer (`IGraphDatabase` interface)
+  - Created `FalkorDBAdapter` and `AuraDBAdapter` adapters
+  - Support database type configuration via `.env` file
+- 📝 **Environment Variable Configuration**: Added `.env` file support
+  - Supports `DB_TYPE`, `GRAPH_NAME`, `PORT`, etc.
+  - FalkorDB config: `FALKORDB_URL`
+  - AuraDB config: `AURADB_URI`, `AURADB_USERNAME`, `AURADB_PASSWORD`, `AURADB_DATABASE`
+- 📦 **New Dependencies**
+  - `neo4j-driver`: Official Neo4j driver (for AuraDB)
+  - `dotenv`: Environment variable loader
+
+### Improved
+- 🏗️ **Architecture Refactoring**
+  - Refactored `GraphBuilder` and `MatchstickSolver` to use database adapters instead of direct Redis client
+  - Unified database query interface for better maintainability and testability
+  - Updated test file `check-graph.ts` to support configurable database selection
+- 📖 **Documentation Updates**
+  - Updated README (both Chinese and English) with database selection guide
+  - Created `.env.example` template file
+
+### Fixed
+- 🐛 **AuraDB Concurrent Query Issue**
+  - Fixed incomplete query results caused by Neo4j Session not supporting concurrent transactions
+  - Each query now creates an independent session, ensuring `Promise.all` parallel queries work correctly
+- 🐛 **Neo4j Integer Type Conversion**
+  - Fixed Neo4j Integer objects (`{low, high}`) not being properly converted to JavaScript numbers
+  - Added `convertNeo4jValue` method to handle Neo4j special types (Integer, Date, DateTime, Point, etc.)
+
+### Technical Details
+- Database adapters return unified format: `{ data: any[][], metadata?: any }`
+- Configuration validation: Clear error messages when AuraDB config is incomplete
+- Configuration display: Shows current database type and connection info on startup (sensitive data masked)
+
+---
+
 ## [v0.2] - 2026-02-19
 
 ### Added
