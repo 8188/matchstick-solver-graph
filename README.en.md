@@ -167,7 +167,6 @@ npm test -- --no-cache
 - **RealmDB**: ~550ms - Slightly faster than the others thanks to direct local object access and no network overhead; ideal for rapid development and small datasets.
 - **FalkorDB**: ~600ms - Lightweight Redis graph database with excellent performance and true concurrent query support, recommended when simulating production or under higher load.
 - **AuraDB**: ~30s - Offers the same functionality but is slower due to Neo4j session management and network latency; the benefit is scalability and easy cloud deployment.
-- **matchstick-puzzle-solver** (original version): ~125s - Pure frontend brute-force approach
 
 ##  TODO List
 
