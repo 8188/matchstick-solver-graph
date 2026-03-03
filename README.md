@@ -6,7 +6,7 @@
 
 ---
 
-基于**图数据库**的高性能火柴棒等式求解工具，是 [matchstick-puzzle-solver](https://github.com/8188/matchstick-puzzle-solver) 的升级版。将字符变换规则建模为图，通过 Cypher 查询代替穷举搜索，大幅提升求解效率和可扩展性。
+基于**图数据库**的高性能火柴棒等式求解实现——一个与 [matchstick-puzzle-solver](https://github.com/8188/matchstick-puzzle-solver) 并列的图数据库版本。将字符变换规则建模为图，通过 Cypher 查询与服务端缓存来加速变换查找并提升可扩展性。
 
 **现已支持三种数据库选择：**
 - **FalkorDB**：轻量级 Redis 图数据库
@@ -84,36 +84,15 @@ npx http-server frontend -p 3000
 
 然后访问：`http://localhost:3000/index.html`
 
-## 项目结构
+## 项目结构（高层）
 
 ```
 matchstick-solver-graph/
- backend/
-    src/
-        database/                 # 数据库适配器层
-           IGraphDatabase.ts      # 统一接口
-           FalkorDBAdapter.ts     # FalkorDB 实现
-           AuraDBAdapter.ts       # AuraDB 实现
-        config.ts                 # 配置管理（.env 支持）
-        solver.ts                 # 核心求解器
-        index.ts                  # Express API 服务器
-        graph-builder.ts          # 图数据初始化
-        parse-rules.ts            # 规则解析工具
- frontend/
-    index.html                    # 主页面
-    rules.html                    # 规则查看页
-    js/
-       app.js                     # 主应用控制器
-       i18n.js                    # 国际化
-    styles/
-        main.css                  # 全局样式
-        components.css            # 组件样式
-        animations.css            # 动画
- test/
-    test-solver.ts                # 集成测试
-    check-graph.ts                # 图数据校验
- .env.example                     # 环境变量模板
- package.json
+├─ backend/       # API 服务、图数据库适配器、求解器实现
+├─ frontend/      # 静态前端（index.html、资源、脚本）
+├─ test/          # 集成与校验测试
+├─ .env.example   # 环境变量模板
+└─ package.json
 ```
 
 ## API 文档
@@ -152,12 +131,12 @@ npm test -- --no-cache
 
 | 特性 | matchstick-puzzle-solver | matchstick-solver-graph |
 |------|--------------------------|-------------------------|
-| 架构 | 纯前端，规则内存存储 | 前后端分离，图数据库 |
-| 数据库 | 无 | FalkorDB / AuraDB / RealmDB 可选 |
-| 规则存储 | JS 对象 | 图节点/边 |
-| 查询方式 | 穷举 + 剪枝 | Cypher 图查询 |
-| 可扩展性 | 有限 | 高（动态添加规则） |
-| 配置方式 | 硬编码 | .env 环境变量 |
+| 架构 | 纯前端 | 前后端分离，图数据库驱动 |
+| 数据库 | 无（规则内存/本地缓存） | FalkorDB / AuraDB / RealmDB 可选 |
+| 规则存储 | JS 对象 / 本地缓存 | 图节点与边，持久化存储 |
+| 查询方式 | 穷举+剪枝，加入规则缓存与 generator 惰性求值 | Cypher 图查询 + 服务端缓存 |
+| 可扩展性 | 适用于小到中等规模，经过优化后性能优良 | 高：适合大规模规则集与动态规则更新 |
+| 配置方式 | 代码内/运行时选项 | .env 与服务器配置 |
 | 部署复杂度 | 极低（静态页面） | 中（需要数据库） |
 | 测试方式 | 纯前端 node 脚本 | HTTP API 集成测试 |
 

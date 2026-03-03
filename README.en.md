@@ -6,7 +6,7 @@
 
 ---
 
-A high-performance matchstick equation solver powered by **graph databases**  the next generation of [matchstick-puzzle-solver](https://github.com/8188/matchstick-puzzle-solver). Character transformation rules are modeled as a graph, with Cypher queries replacing brute-force enumeration for better efficiency and scalability.
+A high-performance matchstick equation solver powered by **graph databases** — a graph-backed implementation related to [matchstick-puzzle-solver](https://github.com/8188/matchstick-puzzle-solver). Character transformation rules are modeled as a graph; Cypher queries and server-side caching are used to accelerate lookups and improve scalability.
 
 **Now supports three database options:**
 - **FalkorDB**: Lightweight Redis-based graph database
@@ -84,36 +84,15 @@ npx http-server frontend -p 3000
 
 Then visit: `http://localhost:3000/index.html`
 
-## Project Structure
+## Project Structure (high level)
 
 ```
 matchstick-solver-graph/
- backend/
-    src/
-        database/                 # Database adapter layer
-           IGraphDatabase.ts      # Unified interface
-           FalkorDBAdapter.ts     # FalkorDB implementation
-           AuraDBAdapter.ts       # AuraDB implementation
-        config.ts                 # Configuration management (.env support)
-        solver.ts                 # Core solver
-        index.ts                  # Express API server
-        graph-builder.ts          # Graph initialization
-        parse-rules.ts            # Rule parsing utility
- frontend/
-    index.html                    # Main page
-    rules.html                    # Rules viewer page
-    js/
-       app.js                     # Main app controller
-       i18n.js                    # Internationalization
-    styles/
-        main.css                  # Global styles
-        components.css            # Component styles
-        animations.css            # Animations
- test/
-    test-solver.ts                # Integration tests
-    check-graph.ts                # Graph data validation
- .env.example                     # Environment variable template
- package.json
+├─ backend/       # API server, graph adapters, solver
+├─ frontend/      # Static UI (index.html, assets, js)
+├─ test/          # Integration and validation tests
+├─ .env.example   # Environment template
+└─ package.json
 ```
 
 ## API Reference
@@ -152,12 +131,12 @@ npm test -- --no-cache
 
 | Feature | matchstick-puzzle-solver | matchstick-solver-graph |
 |---------|--------------------------|-------------------------|
-| Architecture | Pure frontend, in-memory rules | Frontend/backend separated, graph DB |
-| Database | None | FalkorDB / AuraDB / RealmDB selectable |
-| Rule Storage | JS objects | Graph nodes/edges |
-| Query Method | Brute-force + pruning | Cypher graph queries |
-| Scalability | Limited | High (dynamic rule addition) |
-| Configuration | Hardcoded | .env environment variables |
+| Architecture | Pure frontend | Frontend/backend, graph-backed service |
+| Database | None (rules in-memory) | FalkorDB / AuraDB / RealmDB selectable |
+| Rule Storage | JS objects / local cache | Graph nodes & edges persisted in DB |
+| Query Method | Brute-force + pruning, with rule cache & generator-based lazy evaluation | Cypher graph queries + server-side cache |
+| Scalability | Good for small-to-medium puzzles with optimized local solver | High — suitable for large rule-sets and dynamic rule updates |
+| Configuration | In-code / runtime options | .env and server configuration |
 | Deploy Complexity | Very low (static page) | Medium (requires database) |
 | Testing | Pure frontend node script | HTTP API integration tests |
 
